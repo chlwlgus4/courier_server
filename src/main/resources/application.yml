@@ -1,7 +1,28 @@
 spring:
   application:
     name: courier_server
+  datasource:
+    url: jdbc:mariadb://chlwlgus91.synology.me:5306/courier
+    username: ${DB_USERNAME:courier}
+    password: ${DB_PASSWORD:courier123!}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10     # 최대 커넥션 수
+      minimum-idle: 5           # 최소 유휴 커넥션 수
+      idle-timeout: 600000      # 10분 커넥션 유휴 타임아웃 시간
+      max-lifetime: 1800000     # 30분 커넥션 최대 수명 시간
+      connection-timeout: 30000 # 30초 커넥션 획득 타임아웃 시간
+      pool-name: CourierHikariCP
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+
 
 jwt:
-  secret: ${JWT_SECRET:dummy_secret_for_development}
+  secret: ${JWT_SECRET:dummy_secret_for_development_dummy_secret_!}
   expiration-ms: ${JWT_EXPIRATION_MS:3600000}
