@@ -51,7 +51,7 @@ public class SecurityConfig {
 
         // 요청 권한 설정
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/user/register", "/api/user/login").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .anyRequest().authenticated()
         );
         // JWT 필터 추가
