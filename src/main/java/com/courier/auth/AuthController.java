@@ -2,16 +2,20 @@ package com.courier.auth;
 
 import com.courier.auth.dto.AuthLoginDTO;
 import com.courier.auth.dto.AuthResponse;
-import com.courier.auth.dto.TokenRefreshRequest;
 import com.courier.auth.dto.TokenResponse;
 import com.courier.auth.service.AuthService;
 import com.courier.auth.service.RefreshTokenService;
-import com.courier.handler.GlobalExceptionHandler;
 import com.courier.handler.exception.InvalidRefreshTokenException;
 import com.courier.user.domain.User;
 import com.courier.util.JwtUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,8 +35,11 @@ public class AuthController {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
 
+    @Value("${cookie.secure:false}")
+    private boolean cookieSecure;
+
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthLoginDTO dto) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthLoginDTO dto, HttpServletResponse response) {
 
         // 인증 시도
         var authToken = new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword());
@@ -45,39 +52,83 @@ public class AuthController {
         String accessToken = jwtUtil.generateToken(user.getUsername(), user.getRole());
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername(), user.getRole());
 
-        return ResponseEntity.ok(new AuthResponse(user, accessToken, refreshToken));
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)               // HTTPS 환경에서만 전송
+                .path("/")                  // 애플리케이션 전체 경로
+                .maxAge(7 * 24 * 60 * 60)   // 7일
+                .sameSite("Strict")         // 또는 "Lax"
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(new AuthResponse(user, accessToken));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthLoginDTO dto) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthLoginDTO dto, HttpServletResponse response) {
 
         User user = authService.saveUser(dto);
         String accessToken = jwtUtil.generateToken(user.getUsername(), user.getRole());
         String refreshToken = refreshTokenService.createRefreshToken(user.getUsername(), user.getRole());
 
-        var body = new AuthResponse(user, accessToken, refreshToken);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)               // HTTPS 환경에서만 전송
+                .path("/")                  // 애플리케이션 전체 경로
+                .maxAge(7 * 24 * 60 * 60)   // 7일
+                .sameSite("Strict")         // 또는 "Lax"
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        var body = new AuthResponse(user, accessToken);
         return ResponseEntity
                 .created(URI.create("/api/users/" + user.getId()))
                 .body(body);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(
-            @Valid @RequestBody TokenRefreshRequest req
-    ) {
-        String token = req.refreshToken();
-        // JWT 에서 사용자명 추출
-        String username = jwtUtil.getUsername(token);
+    public ResponseEntity<TokenResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
 
-        if (!refreshTokenService.validateRefreshToken(username, token)) {
+        // 1) 쿠키에서 기존 리프레시 토큰 꺼내기
+        String oldToken = extractRefreshTokenFromCookie(request);
+        if (oldToken == null) throw new InvalidRefreshTokenException("세션이 유효하지 않습니다.");
+
+        String username = jwtUtil.getUsername(oldToken);
+        if (!refreshTokenService.validateRefreshToken(username, oldToken)) {
             throw new InvalidRefreshTokenException("리프레시 토큰이 유효하지 않습니다.");
         }
 
-        String role = jwtUtil.getRole(token);
+        // 2) 검증 후, DB에서 oldToken 무효화(또는 삭제)
+        refreshTokenService.deleteRefreshToken(username, oldToken);
+
+        String role = jwtUtil.getRole(oldToken);
+        // 3) 새로운 리프레시 토큰 생성
+        String newRefreshToken = refreshTokenService.createRefreshToken(username, role);
+
+        // 4) 새로운 액세스 토큰 생성
         String newAccess = jwtUtil.generateToken(username, role);
-        return ResponseEntity.ok(
-                new TokenResponse("Bearer", newAccess, token)  // refresh token 재발급 안 할 땐 기존 토큰 재사용
-        );
+
+        // 5) HttpOnly 쿠키로 새로운 리프레시 토큰 설정
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(new TokenResponse("Bearer", newAccess));
     }
 
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("refreshToken".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
 }
