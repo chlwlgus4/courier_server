@@ -2,7 +2,6 @@ package com.courier.auth;
 
 import com.courier.auth.dto.AuthLoginDTO;
 import com.courier.auth.dto.AuthResponse;
-import com.courier.auth.dto.TokenResponse;
 import com.courier.auth.service.AuthService;
 import com.courier.auth.service.RefreshTokenService;
 import com.courier.handler.exception.InvalidRefreshTokenException;
@@ -87,7 +86,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<AuthResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
 
         // 1) 쿠키에서 기존 리프레시 토큰 꺼내기
         String oldToken = extractRefreshTokenFromCookie(request);
@@ -97,6 +96,8 @@ public class AuthController {
         if (!refreshTokenService.validateRefreshToken(username, oldToken)) {
             throw new InvalidRefreshTokenException("리프레시 토큰이 유효하지 않습니다.");
         }
+
+        User user = authService.getUser(username);
 
         // 2) 검증 후, DB에서 oldToken 무효화(또는 삭제)
         refreshTokenService.deleteRefreshToken(username, oldToken);
@@ -118,7 +119,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok(new TokenResponse("Bearer", newAccess));
+        return ResponseEntity.ok(new AuthResponse(user, newAccess));
     }
 
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
@@ -130,5 +131,29 @@ public class AuthController {
             }
         }
         return null;
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        // 1) 쿠키에서 기존 리프레시 토큰 꺼내기
+        String token = extractRefreshTokenFromCookie(request);
+        if (token != null) {
+            // 2) Redis에서 토큰 삭제
+            String username = jwtUtil.getUsername(token);
+            refreshTokenService.deleteRefreshToken(username, token);
+        }
+
+        // 3) HttpOnly 쿠키 만료 처리 (삭제)
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)    // login/logout 시와 동일한 secure 설정
+                .path("/")
+                .maxAge(0)               // 즉시 만료
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+        // 4) 204 No Content 반환
+        return ResponseEntity.noContent().build();
     }
 }
