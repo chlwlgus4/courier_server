@@ -20,18 +20,18 @@
         max-lifetime: 1800000     # 30분 커넥션 최대 수명 시간
         connection-timeout: 30000 # 30초 커넥션 획득 타임아웃 시간
         pool-name: CourierHikariCP
-      jpa:
-       hibernate:
-         ddl-auto: update
-       show-sql: true
-       properties:
-         hibernate:
-           format_sql: true
-           dialect: org.hibernate.dialect.MariaDBDialect
-      data:
-       redis:
-         host: chlwlgus91.synology.me
-         port: 5406
+    jpa:
+      hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+   data:
+    redis:
+      host: chlwlgus91.synology.me
+      port: 5406
    
    cookie:
     secure: false
@@ -42,7 +42,7 @@
     refresh-expiration-ms: 604800000
    
    server:
-   port: 8080
+    port: 8080
    ```
    이 설정을 각 환경(local, dev, prod 등)에 맞게 수정하여 사용하세요. 환경변수나 시스템 속성을 통해 값을 주입할 수도 있습니다.
    
