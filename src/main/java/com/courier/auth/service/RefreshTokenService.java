@@ -7,6 +7,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +31,6 @@ public class RefreshTokenService {
      */
     public String createRefreshToken(String username, String role) {
         // (1) 기존 토큰 삭제: username으로 된 모든 토큰 지움
-        //    → 만약 여러 디바이스 지원하려면 delete 로직 변경
         redisTemplate.keys(KEY_PREFIX + username + ":*")
                 .forEach(redisTemplate::delete);
 

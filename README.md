@@ -3,9 +3,50 @@
 
 ## 개발 환경 설정
 
-1. 생성된 파일에서 다음 값들을 적절히 변경:
-    - JWT_SECRET: JWT 서명에 사용되는 비밀키 (최소 32바이트 길이)
-    - JWT_EXPIRATION_MS: 토큰 만료 시간 (밀리초 단위)
+1. 프로필
+
+   각 환경에 맞는 프로필 설정을 위해 `application-{profile}.yml` 파일을 생성해야 합니다.
+   ```yaml
+   spring:
+    datasource:
+      url: jdbc:mariadb://localhost:3306/courier
+      username: courier
+      password: courier123!
+      driver-class-name: org.mariadb.jdbc.Driver
+      hikari:
+        maximum-pool-size: 10     # 최대 커넥션 수
+        minimum-idle: 5           # 최소 유휴 커넥션 수
+        idle-timeout: 600000      # 10분 커넥션 유휴 타임아웃 시간
+        max-lifetime: 1800000     # 30분 커넥션 최대 수명 시간
+        connection-timeout: 30000 # 30초 커넥션 획득 타임아웃 시간
+        pool-name: CourierHikariCP
+      jpa:
+       hibernate:
+         ddl-auto: update
+       show-sql: true
+       properties:
+         hibernate:
+           format_sql: true
+           dialect: org.hibernate.dialect.MariaDBDialect
+      data:
+       redis:
+         host: chlwlgus91.synology.me
+         port: 5406
+   
+   cookie:
+    secure: false
+   
+   jwt:
+    secret: dummy_secret_for_development_dummy_secret_!
+    expiration-ms: 3600000
+    refresh-expiration-ms: 604800000
+   
+   server:
+   port: 8080
+   ```
+   이 설정을 각 환경(local, dev, prod 등)에 맞게 수정하여 사용하세요. 환경변수나 시스템 속성을 통해 값을 주입할 수도 있습니다.
+   
+   참고: `spring.profiles.active` 속성은 프로필별 구성 파일 내부에서 사용하지 마세요. 이 속성은 기본 application.yml 파일이나 JVM 파라미터, 환경변수를 통해 설정해야 합니다.
 
 2. 애플리케이션 실행 시 프로필 지정:
    ```
