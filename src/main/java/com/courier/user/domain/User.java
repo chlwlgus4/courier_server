@@ -23,5 +23,18 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    private String name;
+
     private String role;
+
+    @Column(unique = true)
+    private String email;
+
+    private String phone;
+
+    // OAuth 관련 필드
+    private String provider;        // 제공자 (google, naver, kakao 등)
+    private String providerId;      // OAuth 제공자의 고유 ID
+    private String profileImage;    // 프로필 이미지 URL
+
 }

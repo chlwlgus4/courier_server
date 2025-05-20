@@ -1,6 +1,6 @@
 package com.courier.auth.service;
 
-import com.courier.auth.dto.AuthLoginDTO;
+import com.courier.auth.dto.AuthRegisterDTO;
 import com.courier.user.domain.User;
 import com.courier.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +18,17 @@ public class AuthService {
         return userRepository.findByUsername(username).orElseThrow();
     }
 
-    public User saveUser(AuthLoginDTO req) {
+    public User saveUser(AuthRegisterDTO req) {
 
         User user = User.builder()
                 .username(req.getUsername())
                 .password(passwordEncoder.encode(req.getPassword()))
+                .name(req.getName())
+                .email(req.getEmail())
+                .phone(req.getPhone())
                 .role("ROLE_USER")
                 .build();
+
 
         return userRepository.save(user);
     }

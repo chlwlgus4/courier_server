@@ -1,6 +1,7 @@
 package com.courier.auth;
 
 import com.courier.auth.dto.AuthLoginDTO;
+import com.courier.auth.dto.AuthRegisterDTO;
 import com.courier.auth.dto.AuthResponse;
 import com.courier.auth.service.AuthService;
 import com.courier.auth.service.RefreshTokenService;
@@ -64,7 +65,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthLoginDTO dto, HttpServletResponse response) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRegisterDTO dto, HttpServletResponse response) {
 
         User user = authService.saveUser(dto);
         String accessToken = jwtUtil.generateToken(user.getUsername(), user.getRole());
