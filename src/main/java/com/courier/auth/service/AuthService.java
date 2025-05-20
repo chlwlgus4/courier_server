@@ -29,7 +29,6 @@ public class AuthService {
                 .role("ROLE_USER")
                 .build();
 
-
         return userRepository.save(user);
     }
 }

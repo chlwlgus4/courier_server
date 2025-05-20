@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Builder
@@ -25,6 +26,8 @@ public class User {
 
     private String name;
 
+    @Column(length = 50)
+    @ColumnDefault("'ROLE_USER'")
     private String role;
 
     @Column(unique = true)
