@@ -61,7 +61,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok(new AuthResponse(user, accessToken));
+        return ResponseEntity.ok(AuthResponse.of(user, accessToken));
     }
 
     @PostMapping("/register")
@@ -80,7 +80,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        var body = new AuthResponse(user, accessToken);
+        var body = AuthResponse.of(user, accessToken);
         return ResponseEntity
                 .created(URI.create("/api/users/" + user.getId()))
                 .body(body);
@@ -120,7 +120,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok(new AuthResponse(user, newAccess));
+        return ResponseEntity.ok(AuthResponse.of(user, newAccess));
     }
 
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
