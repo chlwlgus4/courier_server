@@ -4,6 +4,7 @@ import com.courier.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -51,7 +52,12 @@ public class SecurityConfig {
 
         // 요청 권한 설정
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh").permitAll()
+                .requestMatchers("/api/auth/register",
+                        "/api/auth/login",
+                        "/api/auth/refresh"
+                ).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/faqs/**")
+                .permitAll()
                 .anyRequest().authenticated()
         );
         // JWT 필터 추가
