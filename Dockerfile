@@ -21,7 +21,7 @@ COPY --from=build application/snapshot-dependencies/ ./
 COPY --from=build application/application/ ./
 
 # 프로파일 설정 추가
-ENV SPRING_PROFILES_ACTIVE=local
+ENV SPRING_PROFILES_ACTIVE=prod
 
 # org.springframework.boot.loader.JarLauncher로 애플리케이션을 실행한다.
 ENTRYPOINT ["java","org.springframework.boot.loader.launch.JarLauncher"]
