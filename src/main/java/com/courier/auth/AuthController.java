@@ -61,7 +61,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok(AuthResponse.of(user, accessToken));
+        return ResponseEntity.ok(new AuthResponse(accessToken));
     }
 
     @PostMapping("/register")
@@ -80,7 +80,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        var body = AuthResponse.of(user, accessToken);
+        var body = new AuthResponse(accessToken);
         return ResponseEntity
                 .created(URI.create("/api/users/" + user.getId()))
                 .body(body);
@@ -99,6 +99,7 @@ public class AuthController {
         }
 
         User user = authService.getUser(username);
+        if (user == null) throw new InvalidRefreshTokenException("세션이 유효하지 않습니다.");
 
         // 2) 검증 후, DB에서 oldToken 무효화(또는 삭제)
         refreshTokenService.deleteRefreshToken(username, oldToken);
@@ -120,7 +121,7 @@ public class AuthController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok(AuthResponse.of(user, newAccess));
+        return ResponseEntity.ok(new AuthResponse(newAccess));
     }
 
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {

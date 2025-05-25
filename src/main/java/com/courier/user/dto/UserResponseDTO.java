@@ -1,4 +1,4 @@
-package com.courier.auth.dto;
+package com.courier.user.dto;
 
 import com.courier.user.domain.User;
 
