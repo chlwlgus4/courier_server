@@ -9,18 +9,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
 // OncePerRequestFilter http 요청당 정확히 한 번만 실행되도록 보장하는 필터
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -34,8 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.getUsername(token);
+                var userDetails = userDetailsService.loadUserByUsername(username);
                 Authentication auth = new UsernamePasswordAuthenticationToken(
-                        username, null, AuthorityUtils.createAuthorityList("ROLE_USER")
+                        userDetails,
+                        null,
+                        AuthorityUtils.createAuthorityList("ROLE_USER")
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

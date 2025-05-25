@@ -1,6 +1,7 @@
 package com.courier.config.security;
 
 import com.courier.user.repository.UserRepository;
+import com.courier.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,10 +31,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final UserRepository userRepository;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtUtil jwtUtil;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public JwtAuthenticationFilter jwtAuthenticationFilter(UserDetailsService uds) {
+        return new JwtAuthenticationFilter(jwtUtil, uds);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 
         // CORS 설정
         http.cors(Customizer.withDefaults());
