@@ -64,6 +64,8 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/faqs/**")
                 .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/user/check-username")
+                .permitAll()
                 .anyRequest().authenticated()
         );
         // JWT 필터 추가
