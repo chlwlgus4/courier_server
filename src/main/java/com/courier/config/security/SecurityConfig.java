@@ -34,7 +34,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(UserDetailsService uds) {
+    public JwtAuthenticationFilter jwtAuthenticationFilter(CustomUserDetailsService uds) {
         return new JwtAuthenticationFilter(jwtUtil, uds);
     }
 

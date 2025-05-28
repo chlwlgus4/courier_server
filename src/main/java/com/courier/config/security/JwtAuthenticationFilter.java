@@ -10,7 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -19,9 +19,9 @@ import java.io.IOException;
 // OncePerRequestFilter http 요청당 정확히 한 번만 실행되도록 보장하는 필터
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
@@ -38,11 +38,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("validateToken: {}", jwtUtil.validateToken(token));
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.getUsername(token);
-                var userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 Authentication auth = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
-                        AuthorityUtils.createAuthorityList("ROLE_USER")
+                        userDetails.getAuthorities()
+//                        AuthorityUtils.createAuthorityList("ROLE_USER")
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
