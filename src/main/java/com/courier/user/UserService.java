@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 @Service
 public class UserService {
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     private static final Pattern PASSWORD_PATTERN = Pattern.compile(
@@ -26,15 +26,13 @@ public class UserService {
                     + "(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$"
     );
 
-    private final UserRepository userRepository;
-
     public UserResponse getUser(String username) {
-        User user = repository.findByUsernameOrEmail(username, username).orElseThrow();
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow();
         return UserResponse.of(user);
     }
 
     public UsernameCheckResponse isUsernameAvailable(String username) {
-        boolean isAvailable = !repository.existsByUsername(username);
+        boolean isAvailable = !userRepository.existsByUsername(username);
         return new UsernameCheckResponse(isAvailable);
     }
 
@@ -46,7 +44,7 @@ public class UserService {
 
     @Transactional
     public void passwordChange(String username, PasswordChangeRequest dto) {
-        User u = repository.findByUsernameOrEmail(username, username)
+        User u = userRepository.findByUsernameOrEmail(username, username)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다"));
 
         if (!passwordEncoder.matches(dto.getOldPassword(), u.getPassword())) {
@@ -60,7 +58,7 @@ public class UserService {
         }
 
         u.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        repository.save(u);
+        userRepository.save(u);
     }
 
 }
