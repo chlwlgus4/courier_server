@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmailModifyRequest {
 
-    @Email
-    @NotBlank
+    @Email(message = "{email.format.invalid}")
+    @NotBlank(message = "{email.not.blank}")
     private String email;
 }

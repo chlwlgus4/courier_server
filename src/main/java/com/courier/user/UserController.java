@@ -34,7 +34,7 @@ public class UserController {
     }
 
     @PatchMapping("/modify-email")
-    public ResponseEntity<UserResponse> modifyEmail(@AuthenticationPrincipal CustomUserDetails principal, @RequestBody EmailModifyRequest req) {
+    public ResponseEntity<UserResponse> modifyEmail(@AuthenticationPrincipal CustomUserDetails principal, @RequestBody @Valid EmailModifyRequest req) {
         UserResponse res = userService.modifyEmail(principal.getId(), req);
         return ResponseEntity.ok(res);
     }
