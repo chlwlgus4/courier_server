@@ -38,6 +38,9 @@ public class UserService {
 
     public UserResponse modifyEmail(Long id, EmailModifyRequest req) {
         User u = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+        if(u.getEmail().equals(req.getEmail())) {
+            throw new BadRequestException("이전 이메일과 동일합니다.");
+        }
         u.setEmail(req.getEmail());
         return UserResponse.of(userRepository.save(u));
     }

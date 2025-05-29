@@ -5,8 +5,12 @@ import com.courier.user.dto.EmailModifyRequest;
 import com.courier.user.dto.PasswordChangeRequest;
 import com.courier.user.dto.UserResponse;
 import com.courier.user.dto.UsernameCheckResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 public class UserController {
+
+    @Value("${cookie.secure:false}")
+    private boolean cookieSecure;
 
     private final UserService userService;
 
@@ -40,9 +47,21 @@ public class UserController {
     }
 
     @PostMapping("/password-change")
-    public ResponseEntity<?> passwordChange(@AuthenticationPrincipal UserDetails principal, @RequestBody @Valid PasswordChangeRequest req) {
+    public ResponseEntity<?> passwordChange(@AuthenticationPrincipal UserDetails principal,
+                                            @RequestBody @Valid PasswordChangeRequest req,
+                                            HttpServletResponse response) {
         String username = principal.getUsername();
         userService.passwordChange(username, req);
+
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(cookieSecure)    // login/logout 시와 동일한 secure 설정
+                .path("/")
+                .maxAge(0)               // 즉시 만료
+                .sameSite("Strict")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
         return ResponseEntity.ok().build();
     }
 
