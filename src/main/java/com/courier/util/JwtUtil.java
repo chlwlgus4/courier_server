@@ -1,8 +1,6 @@
 package com.courier.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,14 +45,26 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token) {
-        log.debug("validateToken KEY: {}", key);
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration()
-                .after(new Date());
+        try {
+            log.debug("validateToken KEY: {}", key);
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration()
+                    .after(new Date());
+        } catch (ExpiredJwtException e) {
+            log.debug("Token expired: {}", e.getMessage());
+            return false;
+        } catch (JwtException e) {
+            log.debug("Invalid token: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("Token validation error: {}", e.getMessage());
+            return false;
+        }
+
     }
 
     public String getUsername(String token) {

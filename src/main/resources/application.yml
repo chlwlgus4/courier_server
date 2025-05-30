@@ -1,3 +1,5 @@
 spring:
   application:
     name: courier_server
+  messages:
+    encoding: UTF-8

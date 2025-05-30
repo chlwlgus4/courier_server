@@ -30,9 +30,16 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
+    public static final String[] PUBLIC_PATHS = {
+            "/api/auth/register",
+            "/api/auth/login",
+            "/api/auth/refresh"
+    };
+
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(CustomUserDetailsService uds) {
-        return new JwtAuthenticationFilter(jwtUtil, uds);
+        return new JwtAuthenticationFilter(jwtUtil, uds, PUBLIC_PATHS);
     }
 
     @Bean
@@ -55,14 +62,9 @@ public class SecurityConfig {
 
         // 요청 권한 설정
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register",
-                        "/api/auth/login",
-                        "/api/auth/refresh"
-                ).permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/faqs/**")
-                .permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/user/check-username")
-                .permitAll()
+                .requestMatchers(PUBLIC_PATHS).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/user/check-username").permitAll()
                 .anyRequest().authenticated()
         );
         // JWT 필터 추가
@@ -85,7 +87,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:3000", "https://courier.chlwlgus91.synology.me"));  // 허용할 출처
-        config.setAllowedMethods(List.of("GET","POST","PUT", "PATCH","DELETE","OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);  // 자격증명(쿠키) 허용 여부
 

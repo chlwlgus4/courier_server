@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,10 +19,22 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final String[] publicPaths;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService, String[] publicPaths) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.publicPaths = publicPaths;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestPath = request.getRequestURI();
+
+        for (String path : publicPaths) {
+            if (requestPath.startsWith(path)) return true;
+        }
+        return false;
     }
 
     @Override
@@ -32,22 +43,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            log.debug("validateToken: {}", jwtUtil.validateToken(token));
-            if (jwtUtil.validateToken(token)) {
-                String username = jwtUtil.getUsername(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                Authentication auth = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-//                        AuthorityUtils.createAuthorityList("ROLE_USER")
-                );
-                SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+
+                if (jwtUtil.validateToken(token)) {
+                    processValidToken(token);
+                } else {
+                    log.debug("Invalid or expired JWT token");
+                    // 토큰 만료
+                    response.setHeader("Token-Expired", "true");
+                    // 401 Unauthorized 상태 코드 설정
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
             }
+        } catch (Exception e) {
+            log.error("JWT Authentication failed: {}", e.getMessage());
         }
         filterChain.doFilter(request, response);
     }
+
+    private void processValidToken(String token) {
+        String username = jwtUtil.getUsername(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
 }
