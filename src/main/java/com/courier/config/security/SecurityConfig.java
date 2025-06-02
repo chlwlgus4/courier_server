@@ -33,7 +33,8 @@ public class SecurityConfig {
     public static final String[] PUBLIC_PATHS = {
             "/api/auth/register",
             "/api/auth/login",
-            "/api/auth/refresh"
+            "/api/auth/refresh",
+            "/api/hs-tariff/import",
     };
 
 
@@ -62,6 +63,7 @@ public class SecurityConfig {
 
         // 요청 권한 설정
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/api/hs-tariff/**").permitAll()
                 .requestMatchers(PUBLIC_PATHS).permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/user/check-username").permitAll()
