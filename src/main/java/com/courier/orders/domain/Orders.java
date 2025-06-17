@@ -1,6 +1,7 @@
 package com.courier.orders.domain;
 
 
+import com.courier.orders.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -66,21 +67,4 @@ public class Orders {
         this.updatedDate = LocalDateTime.now();
     }
 
-    public enum OrderStatus {
-        PENDING("pending"),
-        PROCESSING("processing"),
-        SHIPPED("shipped"),
-        DELIVERED("delivered"),
-        CANCELLED("cancelled");
-
-        private final String value;
-
-        OrderStatus(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return value;
-        }
-    }
 }
