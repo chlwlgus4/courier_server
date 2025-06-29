@@ -1,10 +1,7 @@
 package com.courier.handler;
 
 import com.courier.handler.dto.ErrorDTO;
-import com.courier.handler.exception.BadRequestException;
-import com.courier.handler.exception.ErrorCode;
-import com.courier.handler.exception.InvalidRefreshTokenException;
-import com.courier.handler.exception.ResourceNotFoundException;
+import com.courier.handler.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,6 +64,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(body);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorDTO> onUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorDTO(ErrorCode.UNAUTHORIZED, ex.getMessage(), request.getRequestURI()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

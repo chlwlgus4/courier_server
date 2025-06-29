@@ -32,6 +32,10 @@ public class Orders {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal weight;
 
+    @Column(name = "insurance_value", precision = 15, scale = 2)
+    @Builder.Default
+    private BigDecimal insuranceValue = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "enum('pending', 'processing', 'shipped', 'delivered', 'cancelled')")
     @Builder.Default
@@ -44,6 +48,24 @@ public class Orders {
     @Column(name = "destination_country", length = 50)
     @Builder.Default
     private String destinationCountry = "한국";
+
+    @Column(name = "origin_postal_code", length = 20)
+    private String originPostalCode;
+
+    @Column(name = "origin_address", length = 500)
+    private String originAddress;
+
+    @Column(name = "origin_address_detail", length = 200)
+    private String originAddressDetail;
+
+    @Column(name = "destination_postal_code", length = 20)
+    private String destinationPostalCode;
+
+    @Column(name = "destination_address", length = 500)
+    private String destinationAddress;
+
+    @Column(name = "destination_address_detail", length = 200)
+    private String destinationAddressDetail;
 
     @Column(name = "tracking_number", length = 100)
     private String trackingNumber;

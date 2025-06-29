@@ -1,0 +1,13 @@
+package com.courier.orders.repository;
+
+import com.courier.orders.domain.OrderImage;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface OrderImageRepository extends JpaRepository<OrderImage, Long> {
+    List<OrderImage> findByOrderId(Integer orderId);
+    void deleteByOrderId(Integer orderId);
+}
