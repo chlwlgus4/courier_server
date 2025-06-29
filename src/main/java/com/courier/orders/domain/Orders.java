@@ -2,6 +2,7 @@ package com.courier.orders.domain;
 
 
 import com.courier.orders.enums.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -21,7 +24,7 @@ public class Orders {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -37,7 +40,7 @@ public class Orders {
     private BigDecimal insuranceValue = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "enum('pending', 'processing', 'shipped', 'delivered', 'cancelled')")
+    @Column(columnDefinition = "enum('PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED')")
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
@@ -83,6 +86,12 @@ public class Orders {
 
     @Column(name = "courier_id")
     private Integer courierId;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("imageOrder ASC")
+    @Builder.Default
+    @JsonManagedReference
+    private List<OrderImage> orderImages = new ArrayList<>();
 
     @PreUpdate
     public void preUpdate() {

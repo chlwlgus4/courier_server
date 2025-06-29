@@ -1,13 +1,12 @@
 package com.courier.orders;
 
+import com.courier.orders.domain.Orders;
 import com.courier.orders.dto.OrderSaveRequest;
+import com.courier.orders.dto.OrderSaveResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -16,13 +15,15 @@ public class OrdersController {
 
     private final OrdersService ordersService;
 
-    public ResponseEntity<?> getOrders() {
-        return ResponseEntity.ok().build();
+    @GetMapping("{id}")
+    public ResponseEntity<?> getOrders(@PathVariable Long id) {
+        Orders order = ordersService.getOrder(id);
+        return ResponseEntity.ok(order);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> saveOrder(@ModelAttribute OrderSaveRequest dto) {
-        ordersService.save(dto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<OrderSaveResponse> saveOrder(@ModelAttribute OrderSaveRequest dto) {
+        Long id = ordersService.save(dto);
+        return ResponseEntity.ok(new OrderSaveResponse(id));
     }
 }

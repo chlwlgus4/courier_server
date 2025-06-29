@@ -1,4 +1,6 @@
 package com.courier.orders.dto;
 
-public record OrderSaveResponse() {
+public record OrderSaveResponse(
+        Long id
+) {
 }

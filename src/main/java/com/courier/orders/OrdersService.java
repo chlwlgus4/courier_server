@@ -1,6 +1,7 @@
 package com.courier.orders;
 
 import com.courier.handler.exception.BadRequestException;
+import com.courier.handler.exception.ResourceNotFoundException;
 import com.courier.orders.domain.OrderImage;
 import com.courier.orders.domain.Orders;
 import com.courier.orders.dto.OrderSaveRequest;
@@ -37,8 +38,17 @@ public class OrdersService {
     @Value("${file.upload.path:/tmp/uploads}")
     private String uploadPath;
 
+    public List<Orders> getOrders() {
+        return null;
+    }
+
+    public Orders getOrder(Long orderId) {
+        return ordersRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("주문 정보가 없습니다."));
+    }
+
     @Transactional(rollbackFor = Exception.class)
-    public void save(OrderSaveRequest dto) {
+    public Long save(OrderSaveRequest dto) {
         Long userId = AuthUtil.getCurrentUserId();
 
         if(userId == null) {
@@ -46,6 +56,8 @@ public class OrdersService {
         }
 
         List<String> savedImagePaths = new ArrayList<>(); // 저장된 파일 경로 추적
+
+        dto.setShippingTypeCode(dto.getShippingTypeCode().toUpperCase());
 
         try {
             // 주문 저장
@@ -59,6 +71,7 @@ public class OrdersService {
             }
 
             log.info("주문 저장 완료 - Order ID: {}, Images: {}", savedOrder.getId(), savedImagePaths.size());
+            return order.getId();
         } catch (Exception e) {
             // 예외 발생시 저장된 파일들 삭제
             if (!savedImagePaths.isEmpty()) {
@@ -70,7 +83,10 @@ public class OrdersService {
         }
     }
 
-    private List<String> saveOrderImages(Integer orderId, List<MultipartFile> images) {
+    private List<String> saveOrderImages(Long orderId, List<MultipartFile> images) {
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
         List<OrderImage> orderImages = new ArrayList<>();
         List<String> savedPaths = new ArrayList<>();
 
@@ -82,7 +98,7 @@ public class OrdersService {
                     savedPaths.add(savedPath); // 저장된 경로 추가
 
                     OrderImage orderImage = OrderImage.builder()
-                            .orderId(orderId)
+                            .order(order)
                             .imagePath(savedPath)
                             .originalFilename(image.getOriginalFilename())
                             .fileSize(image.getSize())

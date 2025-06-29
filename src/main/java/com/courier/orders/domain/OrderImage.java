@@ -1,6 +1,7 @@
 package com.courier.orders.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,9 +21,6 @@ public class OrderImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "order_id", nullable = false)
-    private Integer orderId;
 
     @Column(name = "image_path", nullable = false, length = 500)
     private String imagePath;
@@ -44,7 +42,10 @@ public class OrderImage {
     private LocalDateTime createdDate = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    @JoinColumn(name = "order_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_order_images_order_id"))
+    @JsonBackReference
     private Orders order;
+
 }
 
