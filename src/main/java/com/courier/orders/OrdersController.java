@@ -1,6 +1,7 @@
 package com.courier.orders;
 
 import com.courier.orders.domain.Orders;
+import com.courier.orders.dto.OrderGetResponse;
 import com.courier.orders.dto.OrderSaveRequest;
 import com.courier.orders.dto.OrderSaveResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class OrdersController {
 
     @GetMapping("{id}")
     public ResponseEntity<?> getOrders(@PathVariable Long id) {
-        Orders order = ordersService.getOrder(id);
+        OrderGetResponse order = ordersService.getOrder(id);
         return ResponseEntity.ok(order);
     }
 
