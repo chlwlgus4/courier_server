@@ -2,22 +2,27 @@ package com.courier.orders;
 
 import com.courier.handler.exception.BadRequestException;
 import com.courier.handler.exception.ResourceNotFoundException;
+import com.courier.handler.exception.UnauthorizedException;
 import com.courier.orders.domain.OrderImage;
 import com.courier.orders.domain.Orders;
 import com.courier.orders.dto.OrderGetResponse;
 import com.courier.orders.dto.OrderImageResponse;
+import com.courier.orders.dto.OrderListResponse;
 import com.courier.orders.dto.OrderSaveRequest;
+import com.courier.orders.enums.OrderStatus;
 import com.courier.orders.repository.OrderImageRepository;
 import com.courier.orders.repository.OrdersRepository;
 import com.courier.shipping.domain.ShippingType;
 import com.courier.shipping.repository.ShippingRepository;
 import com.courier.util.AuthUtil;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -44,16 +49,52 @@ public class OrdersService {
     @Value("${file.upload.path:/tmp/uploads}")
     private String uploadPath;
 
-    public List<Orders> getOrders() {
-        return null;
+    public OrderListResponse getOrders(Pageable pageable, OrderStatus status, String search, LocalDate startDate, LocalDate endDate) {
+        Long userId = AuthUtil.getCurrentUserId();
+        if (userId == null) throw new UnauthorizedException("로그인이 필요합니다.");
+
+        Page<Orders> ordersPage;
+
+        if (hasFilters(status, search, startDate, endDate)) {
+            ordersPage = ordersRepository.findOrdersWithFilters(userId, status, search, startDate, endDate, pageable);
+        } else {
+            ordersPage = ordersRepository.findByUserId(userId, pageable);
+        }
+
+        List<OrderGetResponse> orderResponses = ordersPage.getContent().stream()
+                .map(this::convertToOrderGetResponse)
+                .toList();
+
+        return new OrderListResponse(
+                orderResponses,
+                ordersPage.hasNext(),
+                (int) ordersPage.getTotalElements(),
+                ordersPage.getNumber(),
+                ordersPage.getSize()
+        );
+    }
+
+    private boolean hasFilters(OrderStatus status, String search, LocalDate startDate, LocalDate endDate) {
+        return status != null ||
+                (search != null && !search.trim().isEmpty()) ||
+                startDate != null ||
+                endDate != null;
     }
 
     public OrderGetResponse getOrder(Long orderId) {
-        Orders order = ordersRepository.findById(orderId)
+        Long userId = AuthUtil.getCurrentUserId();
+        if (userId == null) throw new UnauthorizedException("로그인이 필요합니다.");
+
+        Orders order = ordersRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("주문 정보가 없습니다."));
 
+        return convertToOrderGetResponse(order);
+    }
+
+    private OrderGetResponse convertToOrderGetResponse(Orders order) {
+        // 기존 getOrder 메서드의 로직을 재사용
+        List<OrderImageResponse> orderImages = getOrderImagesWithData(order.getId());
         ShippingType shippingType = shippingRepository.findByCode(order.getShippingTypeCode());
-        List<OrderImageResponse> imageResponses = getOrderImagesWithData(orderId);
 
         return OrderGetResponse.builder()
                 .shippingType(shippingType.getName())
@@ -69,7 +110,7 @@ public class OrdersService {
                 .destinationAddress(order.getDestinationAddress())
                 .destinationAddressDetail(order.getDestinationAddressDetail())
                 .notes(order.getNotes())
-                .images(imageResponses)
+                .images(orderImages)
                 .build();
     }
 
@@ -129,7 +170,7 @@ public class OrdersService {
         Long userId = AuthUtil.getCurrentUserId();
 
         if (userId == null) {
-            throw new BadRequestException("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
 
         List<String> savedImagePaths = new ArrayList<>(); // 저장된 파일 경로 추적
