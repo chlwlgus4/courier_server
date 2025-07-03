@@ -92,7 +92,8 @@ public class OrdersService {
     }
 
     private OrderGetResponse convertToOrderGetResponse(Orders order) {
-        // 기존 getOrder 메서드의 로직을 재사용
+
+        log.info("order {}", order);
         List<OrderImageResponse> orderImages = getOrderImagesWithData(order.getId());
         ShippingType shippingType = shippingRepository.findByCode(order.getShippingTypeCode());
 
@@ -180,6 +181,8 @@ public class OrdersService {
         try {
             // 주문 저장
             Orders order = modelMapper.map(dto, Orders.class);
+            order.setOriginCountry(dto.getOriginCountryCode());
+            order.setDestinationCountry(dto.getDestinationCountryCode());
             order.setUserId(userId);
             Orders savedOrder = ordersRepository.save(order);
 

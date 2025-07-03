@@ -12,12 +12,14 @@ public class OrderSaveRequest {
     private BigDecimal weight;
     private BigDecimal insuranceValue;
 
-    private String originCountry;
+    private String originCountryCode;
+    private String originCountryName;
     private String originPostalCode;
     private String originAddress;
     private String originAddressDetail;
 
-    private String destinationCountry;
+    private String destinationCountryCode;
+    private String destinationCountryName;
     private String destinationPostalCode;
     private String destinationAddress;
     private String destinationAddressDetail;
