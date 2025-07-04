@@ -9,8 +9,8 @@ import java.util.List;
 @Data
 public class OrderSaveRequest {
     private String shippingTypeCode;
-    private BigDecimal weight;
-    private BigDecimal insuranceValue;
+    private String weight;
+    private String insuranceValue;
 
     private String originCountryCode;
     private String originCountryName;

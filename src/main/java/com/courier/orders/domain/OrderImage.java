@@ -3,10 +3,7 @@ package com.courier.orders.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -41,6 +38,7 @@ public class OrderImage {
     @Builder.Default
     private LocalDateTime createdDate = LocalDateTime.now();
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_order_images_order_id"))
