@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -179,8 +180,12 @@ public class OrdersService {
         dto.setShippingTypeCode(dto.getShippingTypeCode().toUpperCase());
 
         try {
+
+            String trackingNumber = generateTrackingNumber();
+
             // 주문 저장
             Orders order = modelMapper.map(dto, Orders.class);
+            order.setTrackingNumber(trackingNumber);
             order.setOriginCountry(dto.getOriginCountryCode());
             order.setDestinationCountry(dto.getDestinationCountryCode());
             order.setUserId(userId);
@@ -202,6 +207,16 @@ public class OrdersService {
             log.error("주문 저장 실패: {}", e.getMessage());
             throw e; // 예외 재발생으로 DB도 롤백
         }
+    }
+
+    private String generateTrackingNumber() {
+        String trackingNumber;
+        do {
+            trackingNumber = "ORD-" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+                    + "-" + UUID.randomUUID().toString().replace("-", "")
+                    .substring(0, 6).toUpperCase();
+        } while (ordersRepository.existsByTrackingNumberEquals(trackingNumber));
+        return trackingNumber;
     }
 
     private List<String> saveOrderImages(Long orderId, List<MultipartFile> images) {

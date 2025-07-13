@@ -32,4 +32,7 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
                                        Pageable pageable);
 
 
+    boolean existsByTrackingNumberContaining(String trackingNumber);
+
+    boolean existsByTrackingNumberEquals(String trackingNumber);
 }

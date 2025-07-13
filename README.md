@@ -43,6 +43,10 @@
    
    server:
     port: 8080
+  
+   file:
+      upload:
+        path: ./files
    ```
    이 설정을 각 환경(local, dev, prod 등)에 맞게 수정하여 사용하세요. 환경변수나 시스템 속성을 통해 값을 주입할 수도 있습니다.
    
