@@ -9,6 +9,7 @@ ARG JAR_FILE=build/libs/*SNAPSHOT.jar
 
 # JAR 파일을 이미지의 파일 시스템에 app.jar로 복사한다.
 COPY ${JAR_FILE} app.jar
+
 RUN java -Djarmode=layertools -jar app.jar extract
 
 FROM openjdk:17-slim

@@ -1,17 +1,19 @@
 package com.courier.hstariff;
 
 import com.courier.hstariff.domain.HsTariff;
+import com.courier.hstariff.dto.HsCodeSuggestionResponse;
 import com.courier.hstariff.dto.HsTariffDTO;
 import com.courier.hstariff.repository.HsTariffRepository;
 import com.courier.util.ExcelImportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
-public class HsTariffService {
+public class HsCodeService {
     private final HsTariffRepository repo;
     private final ExcelImportService excelService;
 
@@ -52,6 +54,17 @@ public class HsTariffService {
 
             repo.save(entity);
         }
+    }
+
+    public List<HsCodeSuggestionResponse> suggestHsCodes(String keyword) {
+        List<HsTariff> list = repo.findTop10ByKoreanNameContainingIgnoreCaseOrEnglishNameContainingIgnoreCase(keyword, keyword);
+
+        return list.stream().map(hc -> HsCodeSuggestionResponse.builder()
+                .hsCode(hc.getHsCode())
+                .koreanName(hc.getKoreanName())
+                .englishName(hc.getEnglishName())
+                .build()
+        ).toList();
     }
 
 }
