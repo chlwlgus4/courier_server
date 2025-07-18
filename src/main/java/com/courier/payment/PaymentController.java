@@ -1,17 +1,22 @@
 package com.courier.payment;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.courier.payment.dto.PaymentConfirmRequest;
+import com.courier.payment.dto.PaymentConfirmResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RequestMapping("/api/payment")
 @RestController
 public class PaymentController {
 
     @PostMapping("/confirm")
-    public void confirm() {
-
+    public ResponseEntity<PaymentConfirmResponse> confirm(@RequestBody PaymentConfirmRequest dto) {
+        log.info("paymentConfirmDTO: {}", dto);
+        return ResponseEntity.ok(PaymentConfirmResponse.builder()
+                .result(true)
+                .build());
     }
 
     @GetMapping("/status")
