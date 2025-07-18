@@ -30,11 +30,12 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
-    public static final String[] PUBLIC_PATHS = {
+    protected static final String[] PUBLIC_PATHS = {
             "/api/auth/register",
             "/api/auth/login",
             "/api/auth/refresh",
             "/api/hs-tariff/import",
+            "/api/country/all",
     };
 
 

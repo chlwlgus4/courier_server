@@ -1,5 +1,6 @@
 package com.courier.country.domain;
 
+import com.courier.country.enums.UseYn;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,11 +48,5 @@ public class Country {
     @Enumerated(EnumType.STRING)
     @Column(name = "use_yn", nullable = false)
     private UseYn useYn = UseYn.Y;
-
-    public enum UseYn {
-        Y, N
-    }
-
-
 
 }
