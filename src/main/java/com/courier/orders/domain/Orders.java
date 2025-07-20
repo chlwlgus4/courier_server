@@ -2,6 +2,7 @@ package com.courier.orders.domain;
 
 
 import com.courier.orders.enums.OrderStatus;
+import com.courier.payment.domain.Payment;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -90,6 +91,13 @@ public class Orders {
     @Builder.Default
     @JsonManagedReference
     private List<OrderImage> orderImages = new ArrayList<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    @JsonManagedReference
+    private List<Payment> payments = new ArrayList<>();
+
 
     @PreUpdate
     public void preUpdate() {
