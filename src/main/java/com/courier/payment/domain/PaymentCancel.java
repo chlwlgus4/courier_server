@@ -35,6 +35,7 @@ public class PaymentCancel {
     @Column(name = "cancel_date")
     private LocalDateTime cancelDate;
 
+    @Column(length = 30)
     private String status;
 
     @Column(name = "deleted_date")
