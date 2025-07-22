@@ -20,6 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Payment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
