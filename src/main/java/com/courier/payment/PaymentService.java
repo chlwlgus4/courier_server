@@ -49,8 +49,9 @@ public class PaymentService {
                     entity,
                     PaymentConfirmResponse.class
             );
-
-            return response.getBody();
+            PaymentConfirmResponse res = response.getBody();
+            log.info("PaymentConfirmResponse: {}", res);
+            return res;
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             log.error("토스페이먼츠 API 에러: {}, 응답: {}", e.getStatusCode(), e.getResponseBodyAsString());

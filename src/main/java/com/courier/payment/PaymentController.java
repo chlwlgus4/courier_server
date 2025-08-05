@@ -20,7 +20,6 @@ public class PaymentController {
         paymentService.confirm(request);
         log.info("paymentConfirmDTO: {}", request);
         return ResponseEntity.ok(PaymentConfirmResponse.builder()
-                .result(true)
                 .build());
     }
 
